@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Contact Form - Minimal Server Mail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .form-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007cba;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #005a8b;
+        }
+        .security-info {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Secure Contact Form</h1>
+        
+        <div class="security-info">
+            <strong>🛡️ Security Features:</strong>
+            <ul>
+                <li>Process-based authentication</li>
+                <li>Secret token validation</li>
+                <li>Rate limiting (1 minute cooldown)</li>
+                <li>Input sanitization</li>
+                <li>Direct script access blocked</li>
+            </ul>
+        </div>
+
+        <form id="contactForm">
+            <div class="form-group">
+                <label for="name">Your Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Your Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Your Message:</label>
+                <textarea id="message" name="message" rows="5" required></textarea>
+            </div>
+            
+            <button type="submit">Send Message</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('message', document.getElementById('message').value);
+            
+            // Add secret token (in production, this would be generated server-side)
+            const today = new Date().toISOString().split('T')[0];
+            formData.append('_token', 'minimal_secure_' + today);
+            
+            try {
+                const response = await fetch('secure-mail-handler.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    document.getElementById('result').innerHTML = '<div style="color: green; margin-top: 20px;">✅ ' + result + '</div>';
+                    document.getElementById('contactForm').reset();
+                } else {
+                    document.getElementById('result').innerHTML = '<div style="color: red; margin-top: 20px;">❌ Error: ' + result + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = '<div style="color: red; margin-top: 20px;">❌ Network error: ' + error.message + '</div>';
+            }
+        });
+    </script>
+</body>
+</html>
