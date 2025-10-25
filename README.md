@@ -15,7 +15,7 @@ Simple PHP mail sender with enterprise-grade security. No frameworks, no databas
 
 ### Prerequisites
 
-- **msmtp** installed: `apt install msmtp` (Ubuntu/Debian) or `yum install msmtp` (CentOS/RHEL)
+- **msmtp** installed: `apt install msmtp` (Ubuntu/Debian) or `yum install msmtp` (CentOS/RHEL) - [msmtp GitHub Repository](https://github.com/marlam/msmtp)
 - **PHP** with mail() function enabled
 - **Web server** (Apache/Nginx/Caddy)
 
