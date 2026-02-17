@@ -61,8 +61,7 @@
         <div class="security-info">
             <strong>🛡️ Security Features:</strong>
             <ul>
-                <li>Process-based authentication</li>
-                <li>Secret token validation</li>
+                <li>Session-based token (never exposed in client code)</li>
                 <li>Rate limiting (1 minute cooldown)</li>
                 <li>Input sanitization</li>
                 <li>Direct script access blocked</li>
@@ -85,26 +84,43 @@
                 <textarea id="message" name="message" rows="5" required></textarea>
             </div>
             
-            <button type="submit">Send Message</button>
+            <button type="submit" id="submitBtn">Send Message</button>
         </form>
         
         <div id="result"></div>
     </div>
 
     <script>
+        let cachedToken = null;
+
+        // Fetch token from server (session-based - hidden from client)
+        async function getToken() {
+            if (cachedToken) return cachedToken;
+            
+            const response = await fetch('secure-mail-handler.php', {
+                method: 'GET'
+            });
+            cachedToken = await response.text();
+            return cachedToken;
+        }
+
         document.getElementById('contactForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData();
-            formData.append('name', document.getElementById('name').value);
-            formData.append('email', document.getElementById('email').value);
-            formData.append('message', document.getElementById('message').value);
-            
-            // Add secret token (in production, this would be generated server-side)
-            const today = new Date().toISOString().split('T')[0];
-            formData.append('_token', 'minimal_secure_' + today);
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
             
             try {
+                // Get secure token from server (never exposed in JS source)
+                const token = await getToken();
+                
+                const formData = new FormData();
+                formData.append('name', document.getElementById('name').value);
+                formData.append('email', document.getElementById('email').value);
+                formData.append('message', document.getElementById('message').value);
+                formData.append('_token', token);
+                
                 const response = await fetch('secure-mail-handler.php', {
                     method: 'POST',
                     body: formData
@@ -115,11 +131,15 @@
                 if (response.ok) {
                     document.getElementById('result').innerHTML = '<div style="color: green; margin-top: 20px;">✅ ' + result + '</div>';
                     document.getElementById('contactForm').reset();
+                    cachedToken = null; // Reset token after successful submission
                 } else {
                     document.getElementById('result').innerHTML = '<div style="color: red; margin-top: 20px;">❌ Error: ' + result + '</div>';
                 }
             } catch (error) {
                 document.getElementById('result').innerHTML = '<div style="color: red; margin-top: 20px;">❌ Network error: ' + error.message + '</div>';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
             }
         });
     </script>

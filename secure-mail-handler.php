@@ -2,12 +2,26 @@
 // Secure Mail Handler - Only accessible from server-side calls
 // This script processes form data and calls the actual mail script
 
-// Security: Check for secret token (hidden from attackers)
-$secret_token = 'minimal_secure_' . date('Y-m-d'); // Changes daily
-$provided_token = $_POST['_token'] ?? '';
+// Start session for secure token handling
+session_start();
 
-// Check if request has valid secret token
-if ($provided_token !== $secret_token) {
+// Generate random token if not exists (stored only in session - never exposed)
+if (!isset($_SESSION['mail_token'])) {
+    $_SESSION['mail_token'] = bin2hex(random_bytes(32));
+}
+
+// Handle GET request - return token (for AJAX form submission)
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    echo $_SESSION['mail_token'];
+    exit;
+}
+
+// Handle POST request - validate token
+$provided_token = $_POST['_token'] ?? '';
+$session_token = $_SESSION['mail_token'] ?? '';
+
+// Check if token matches session (not exposed in client code)
+if (!hash_equals($session_token, $provided_token)) {
     http_response_code(403);
     echo "Access denied.";
     exit;
@@ -48,8 +62,7 @@ $message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
 $name = str_replace(["\r", "\n"], "", $name);
 $email = str_replace(["\r", "\n"], "", $email);
 
-// Rate limiting (simple session-based)
-session_start();
+// Rate limiting (session-based)
 $ip = $_SERVER['REMOTE_ADDR'];
 $key = 'mail_rate_' . $ip;
 $last_sent = $_SESSION[$key] ?? 0;
