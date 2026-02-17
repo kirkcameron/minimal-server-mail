@@ -44,6 +44,10 @@ $name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
 $email = filter_var($email, FILTER_SANITIZE_EMAIL);
 $message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
 
+// Prevent header injection - strip newlines from user input used in headers
+$name = str_replace(["\r", "\n"], "", $name);
+$email = str_replace(["\r", "\n"], "", $email);
+
 // Rate limiting (simple session-based)
 session_start();
 $ip = $_SERVER['REMOTE_ADDR'];
