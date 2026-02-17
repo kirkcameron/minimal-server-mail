@@ -52,6 +52,11 @@
             margin-bottom: 20px;
             border-left: 4px solid #4caf50;
         }
+        /* Honeypot - hidden from humans */
+        .hp-field {
+            position: absolute;
+            left: -9999px;
+        }
     </style>
 </head>
 <body>
@@ -62,13 +67,20 @@
             <strong>🛡️ Security Features:</strong>
             <ul>
                 <li>Session-based token (never exposed in client code)</li>
-                <li>Rate limiting (1 minute cooldown)</li>
+                <li>Origin validation (CSRF protection)</li>
+                <li>Honeypot anti-bot protection</li>
+                <li>Strict IP-based rate limiting</li>
                 <li>Input sanitization</li>
-                <li>Direct script access blocked</li>
             </ul>
         </div>
 
         <form id="contactForm">
+            <!-- Honeypot field - hidden from users, catches bots -->
+            <div class="hp-field" aria-hidden="true">
+                <label for="website">Leave this empty:</label>
+                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+            
             <div class="form-group">
                 <label for="name">Your Name:</label>
                 <input type="text" id="name" name="name" required>
@@ -93,7 +105,7 @@
     <script>
         let cachedToken = null;
 
-        // Fetch token from server (session-based - hidden from client)
+        // Fetch token from server
         async function getToken() {
             if (cachedToken) return cachedToken;
             
@@ -112,7 +124,6 @@
             submitBtn.textContent = 'Sending...';
             
             try {
-                // Get secure token from server (never exposed in JS source)
                 const token = await getToken();
                 
                 const formData = new FormData();
@@ -131,7 +142,7 @@
                 if (response.ok) {
                     document.getElementById('result').innerHTML = '<div style="color: green; margin-top: 20px;">✅ ' + result + '</div>';
                     document.getElementById('contactForm').reset();
-                    cachedToken = null; // Reset token after successful submission
+                    cachedToken = null;
                 } else {
                     document.getElementById('result').innerHTML = '<div style="color: red; margin-top: 20px;">❌ Error: ' + result + '</div>';
                 }
