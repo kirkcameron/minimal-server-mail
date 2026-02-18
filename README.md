@@ -64,13 +64,13 @@ account default : your-provider
 ### Form Submission
 
 ```bash
-curl -X POST -d "name=John&email=john@example.com&message=Hello&_token=minimal_secure_2024-01-15" \
+curl -X POST -d "name=John&email=john@example.com&message=Hello&_token=your_secret_token_2024-01-15" \
      https://yoursite.com/secure-mail-handler.php
 ```
 
 ### Token Generation
 
-The token format is: `minimal_secure_YYYY-MM-DD`
+The token format is: `your_secret_token_YYYY-MM-DD`
 
 - Changes daily automatically
 - Prevents token reuse attacks

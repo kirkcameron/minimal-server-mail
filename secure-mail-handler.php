@@ -3,7 +3,7 @@
 // This script processes form data and calls the actual mail script
 
 // Security: Configure allowed origins (comma-separated domains)
-$allowed_origins = ['kraemer.co.at'];
+$allowed_origins = ['example.com'];
 
 // Start session
 session_start();
